@@ -342,7 +342,7 @@ def build_block2_segment_diff_table(
 
     pivot_df = pd.pivot_table(
         work_df,
-        index=["セグメントNo", "セグメント名"],
+        index=["セグメント名"],
         columns="調査年度",
         values="指標",
         aggfunc="first",
@@ -354,8 +354,8 @@ def build_block2_segment_diff_table(
     diff_col = f"前年差（{selected_year}-{previous_year}）"
     pivot_df[diff_col] = (pivot_df[selected_year] - pivot_df[previous_year]).round(1)
 
-    result_df = pivot_df[["セグメントNo", "セグメント名", previous_year, selected_year, diff_col]].copy()
-    result_df = result_df.sort_values(["セグメントNo", "セグメント名"]).reset_index(drop=True)
+    result_df = pivot_df[["セグメント名", previous_year, selected_year, diff_col]].copy()
+    result_df = result_df.sort_values(["セグメント名"]).reset_index(drop=True)
     return result_df
 
 
@@ -422,9 +422,9 @@ def build_segment_analysis_diff_table(
     )
 
     base_df = (
-        work_df[["セグメントNo", "セグメント名"]]
+        work_df[["セグメント名"]]
         .drop_duplicates()
-        .sort_values(["セグメントNo", "セグメント名"])
+        .sort_values(["セグメント名"])
         .reset_index(drop=True)
     )
 
@@ -440,7 +440,7 @@ def build_segment_analysis_diff_table(
 
         pivot_df = pd.pivot_table(
             metric_df,
-            index=["セグメントNo", "セグメント名"],
+            index=["セグメント名"],
             columns="調査年度",
             values="指標",
             aggfunc="first",
@@ -451,19 +451,19 @@ def build_segment_analysis_diff_table(
 
         diff_col_name = f"{metric_name}"
         pivot_df[diff_col_name] = (pivot_df[selected_year] - pivot_df[previous_year]).round(1)
-        diff_df = pivot_df[["セグメントNo", "セグメント名", diff_col_name]].copy()
+        diff_df = pivot_df[["セグメント名", diff_col_name]].copy()
         result_df = result_df.merge(
 
             diff_df,
-            on=["セグメントNo", "セグメント名"],
+            on=["セグメント名"],
             how="left",
         )
 
-    metric_diff_cols = [c for c in result_df.columns if c not in ["セグメントNo", "セグメント名"]]
+    metric_diff_cols = [c for c in result_df.columns if c not in ["セグメント名"]]
     if not metric_diff_cols:
         return pd.DataFrame()
 
-    result_df = result_df.sort_values(["セグメントNo", "セグメント名"]).reset_index(drop=True)
+    result_df = result_df.sort_values(["セグメント名"]).reset_index(drop=True)
     return result_df
 
 # =========================
@@ -508,7 +508,7 @@ def build_overview_segment_summary_tables(
 
     pivot_df = pd.pivot_table(
         work_df,
-        index=["指標No", "指標名", "セグメントNo", "セグメント名"],
+        index=["指標No", "指標名", "セグメント名"],
         columns="調査年度",
         values="指標",
         aggfunc="first",
@@ -519,10 +519,10 @@ def build_overview_segment_summary_tables(
 
     diff_col = get_diff_col_name(selected_year, previous_year)
     pivot_df[diff_col] = (pivot_df[selected_year] - pivot_df[previous_year]).round(1)
-    result_df = pivot_df[["指標No", "指標名", "セグメントNo", "セグメント名", previous_year, selected_year, diff_col]].copy()
+    result_df = pivot_df[["指標No", "指標名", "セグメント名", previous_year, selected_year, diff_col]].copy()
 
-    positive_df = result_df.sort_values([diff_col, "指標No", "セグメントNo"], ascending=[False, True, True]).head(top_n).reset_index(drop=True)
-    negative_df = result_df.sort_values([diff_col, "指標No", "セグメントNo"], ascending=[True, True, True]).head(top_n).reset_index(drop=True)
+    positive_df = result_df.sort_values([diff_col, "指標No", "セグメント名"], ascending=[False, True, True]).head(top_n).reset_index(drop=True)
+    negative_df = result_df.sort_values([diff_col, "指標No", "セグメント名"], ascending=[True, True, True]).head(top_n).reset_index(drop=True)
     return positive_df, negative_df
 
 
@@ -1003,7 +1003,7 @@ def generate_segment_trend_comment(
 ) -> str:
     analysis_items = []
     for col in segment_diff_row.index:
-        if col in ["セグメントNo", "セグメント名"]:
+        if col in ["セグメント名"]:
             continue
         value = segment_diff_row[col]
         if pd.notna(value):
@@ -1399,7 +1399,7 @@ with main_col:
                                     st.markdown("#### セグメント差がプラスに大きい指標")
                                     render_readable_table(
                                         segment_positive_df,
-                                        display_columns=["指標No", "指標名", "セグメントNo", "セグメント名", diff_col],
+                                        display_columns=["指標No", "指標名", "セグメント名", diff_col],
                                         decimal_columns=[diff_col],
                                         font_size_px=16,
                                     )
@@ -1407,7 +1407,7 @@ with main_col:
                                     st.markdown("#### セグメント差がマイナスに大きい指標")
                                     render_readable_table(
                                         segment_negative_df,
-                                        display_columns=["指標No", "指標名", "セグメントNo", "セグメント名", diff_col],
+                                        display_columns=["指標No", "指標名", "セグメント名", diff_col],
                                         decimal_columns=[diff_col],
                                         font_size_px=16,
                                     )
@@ -1431,7 +1431,7 @@ with main_col:
                                 else:
                                     block1_sort_order = st.selectbox(
                                         "並び順",
-                                        options=["前年差が大きい順", "前年差が小さい順", "No順"],
+                                        options=["前年差が大きい順", "前年差が小さい順", "セグメント名順"],
                                         index=0,
                                         key=f"block1_sort_{selected_year}_{selected_facility}",
                                     )
@@ -1541,43 +1541,41 @@ with main_col:
                                     else:
                                         block2_sort_order = st.selectbox(
                                             "並び順",
-                                            options=["前年差が大きい順", "前年差が小さい順", "No順"],
+                                            options=["前年差が大きい順", "前年差が小さい順", "セグメント名順"],
                                             index=0,
                                             key=f"block2_sort_{selected_year}_{selected_facility}_{selected_metric_segment['metric_no']}",
                                         )
 
                                         if block2_sort_order == "前年差が大きい順":
                                             seg_df = seg_df.sort_values(
-                                                by=[diff_col, "セグメントNo", "セグメント名"],
-                                                ascending=[False, True, True],
+                                                by=[diff_col, "セグメント名"],
+                                                ascending=[False, True],
                                             ).reset_index(drop=True)
                                         elif block2_sort_order == "前年差が小さい順":
                                             seg_df = seg_df.sort_values(
-                                                by=[diff_col, "セグメントNo", "セグメント名"],
-                                                ascending=[True, True, True],
+                                                by=[diff_col, "セグメント名"],
+                                                ascending=[True, True],
                                             ).reset_index(drop=True)
                                         else:
                                             seg_df = seg_df.sort_values(
-                                                by=["セグメントNo", "セグメント名"],
-                                                ascending=[True, True],
+                                                by=["セグメント名"],
+                                                ascending=[True],
                                             ).reset_index(drop=True)
 
-                                        header_cols = st.columns([1, 4.5, 2.2, 2.2])
-                                        header_cols[0].markdown("**No**")
-                                        header_cols[1].markdown("**セグメント名**")
-                                        header_cols[2].markdown(f"**{diff_col}**")
-                                        header_cols[3].markdown("**操作**")
+                                        header_cols = st.columns([4.8, 2.2, 2.2])
+                                        header_cols[0].markdown("**セグメント名**")
+                                        header_cols[1].markdown(f"**{diff_col}**")
+                                        header_cols[2].markdown("**操作**")
 
                                         for _, seg_row in seg_df.iterrows():
-                                            segment_no = int(seg_row["セグメントNo"]) if pd.notna(seg_row["セグメントNo"]) else None
-                                            seg_cols = st.columns([1, 4.5, 2.2, 2.2])
-                                            seg_cols[0].write(segment_no)
-                                            seg_cols[1].write(seg_row["セグメント名"])
-                                            seg_cols[2].markdown(format_diff_value_html(seg_row[diff_col]), unsafe_allow_html=True)
+                                            segment_key = str(seg_row["セグメント名"])
+                                            seg_cols = st.columns([4.8, 2.2, 2.2])
+                                            seg_cols[0].write(seg_row["セグメント名"])
+                                            seg_cols[1].markdown(format_diff_value_html(seg_row[diff_col]), unsafe_allow_html=True)
 
-                                            if seg_cols[3].button(
+                                            if seg_cols[2].button(
                                                 "コメント生成",
-                                                key=f"segment_comment_{selected_year}_{selected_facility}_{selected_metric_segment['metric_no']}_{segment_no}",
+                                                key=f"segment_comment_{selected_year}_{selected_facility}_{selected_metric_segment['metric_no']}_{segment_key}",
                                                 use_container_width=True,
                                             ):
                                                 with st.spinner("セグメントコメントを生成中です..."):
@@ -1592,7 +1590,6 @@ with main_col:
                                                         segment_table=seg_df,
                                                     )
                                                 st.session_state.selected_segment_for_comment = {
-                                                    "segment_no": segment_no,
                                                     "segment_name": str(seg_row["セグメント名"]),
                                                     "segment_diff": float(seg_row[diff_col]),
                                                 }
@@ -1610,7 +1607,7 @@ with main_col:
                                             with st.container(border=True):
                                                 selected_seg = st.session_state.selected_segment_for_comment
                                                 if selected_seg is not None:
-                                                    st.write(f"**対象セグメント**: {selected_seg['segment_no']} - {selected_seg['segment_name']}")
+                                                    st.write(f"**対象セグメント**: {selected_seg['segment_name']}")
                                                     st.write(f"**セグメント前年差**: {selected_seg['segment_diff']:.1f}")
 
                                                 st.write(st.session_state.block2_generated_comment)
@@ -1761,20 +1758,13 @@ with main_col:
                                 else:
                                     metric_cols = [
                                         c for c in segment_analysis_df.columns
-                                        if c not in ["セグメントNo", "セグメント名"]
+                                        if c not in ["セグメント名"]
                                     ]
 
                                     for _, seg_row in segment_analysis_df.iterrows():
-                                        segment_no = int(seg_row["セグメントNo"]) if pd.notna(seg_row["セグメントNo"]) else None
+                                        segment_key = str(seg_row["セグメント名"])
 
-                                        left_col, center_col, right_col = st.columns([0.9, 2.6, 8.5])
-
-                                        with left_col:
-                                            st.markdown("**No**")
-                                            st.markdown(
-                                                f"<div style='font-size:16px;'>{segment_no if segment_no is not None else '-'}</div>",
-                                                unsafe_allow_html=True,
-                                            )
+                                        center_col, right_col = st.columns([2.6, 8.5])
 
                                         with center_col:
                                             st.markdown("**セグメント / 操作**")
@@ -1785,7 +1775,7 @@ with main_col:
 
                                             if st.button(
                                                 "傾向分析",
-                                                key=f"segment_trend_{selected_year}_{selected_facility}_{segment_no}",
+                                                key=f"segment_trend_{selected_year}_{selected_facility}_{segment_key}",
                                                 use_container_width=True,
                                             ):
                                                 with st.spinner("セグメント傾向を分析中です..."):
@@ -1798,7 +1788,6 @@ with main_col:
                                                     )
 
                                                 st.session_state.selected_segment_for_trend = {
-                                                    "segment_no": segment_no,
                                                     "segment_name": str(seg_row["セグメント名"]),
                                                 }
                                                 st.session_state.segment_mode_generated_comment = comment
@@ -1822,7 +1811,7 @@ with main_col:
                                         with st.container(border=True):
                                             selected_seg = st.session_state.selected_segment_for_trend
                                             if selected_seg is not None:
-                                                st.write(f"**対象セグメント**: {selected_seg['segment_no']} - {selected_seg['segment_name']}")
+                                                st.write(f"**対象セグメント**: {selected_seg['segment_name']}")
                                             st.write(st.session_state.segment_mode_generated_comment)
 
                                             if st.button(
