@@ -1327,7 +1327,7 @@ with main_col:
                                     )
 
                                 with st.container(border=True):
-                                    st.markdown("### ブロック1｜今月は何が起きたか？")
+                                    st.markdown("### ブロック1｜今年は何が起きたか？")
                                     st.markdown("#### 全体の改善 / 悪化サマリー")
                                     st.write(st.session_state.overview_summary_comment)
 
